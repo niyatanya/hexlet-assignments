@@ -19,28 +19,30 @@ public class UsersController {
 
     // BEGIN
     public static void create(Context ctx) {
-        String firstName = ctx.formParamAsClass("firstName", String.class).get();
-        String lastName = ctx.formParamAsClass("lastName", String.class).get();
-        String email = ctx.formParamAsClass("email", String.class).get();
-        String password = ctx.formParamAsClass("password", String.class).get();
+        String firstName = StringUtils.capitalize(ctx.formParam("firstName"));
+        String lastName = StringUtils.capitalize(ctx.formParam("lastName"));
+        String email = ctx.formParam("email").trim().toLowerCase();
+        String password = ctx.formParam("password");
+        String encryptedPassword = Security.encrypt(password);
         String token = Security.generateToken();
 
-        User user = new User(firstName, lastName, email, password, token);
+        User user = new User(firstName, lastName, email, encryptedPassword, token);
         UserRepository.save(user);
         ctx.cookie("token", token);
-        ctx.redirect("/users/" + user.getId());
+        ctx.redirect(NamedRoutes.userPath(user.getId()));
     }
 
     public static void show(Context ctx) {
         String pathToken = ctx.cookie("token");
-        var id = ctx.pathParam("id");
-        var user = UserRepository.find(Long.valueOf(id));
-        String userToken = user.get().getToken();
+        Long id = ctx.pathParamAsClass("id", Long.class).get();
+        User user = UserRepository.find(id)
+                .orElseThrow(() -> new NotFoundResponse("Entity with id = " + id + " not found"));
+        String userToken = user.getToken();
         if (pathToken.equals(userToken)) {
-            UserPage page = new UserPage(user.get());
+            UserPage page = new UserPage(user);
             ctx.render("users/show.jte", model("page", page));
         } else {
-            ctx.redirect("/users/build");
+            ctx.redirect(NamedRoutes.buildUserPath());
         }
     }
     // END
