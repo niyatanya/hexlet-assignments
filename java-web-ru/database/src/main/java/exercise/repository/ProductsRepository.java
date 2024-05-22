@@ -22,7 +22,7 @@ public class ProductsRepository extends BaseRepository {
             //Делаем подстановки в запрос
             stmt.setString(1, product.getTitle());
             stmt.setInt(2, product.getPrice());
-            //Выполняем запрос по добавлению нового автомобиля в базу
+            //Выполняем запрос по добавлению новой записи в базу
             stmt.executeUpdate();
 
             //Достаем auto generated keys, в нашем случае это поле id
