@@ -30,10 +30,11 @@ public class Application {
 
     // BEGIN
     @GetMapping("/posts")
-    public ResponseEntity<List<Post>> index() {
+    public ResponseEntity<List<Post>> index(@RequestParam(defaultValue = "1") Integer page,
+                                            @RequestParam(defaultValue = "10") Integer limit) {
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(posts.size()))
-                .body(posts);
+                .body(posts.stream().skip((page - 1) * limit).limit(limit).toList());
     }
 
     @GetMapping("/posts/{id}")
@@ -47,7 +48,8 @@ public class Application {
     @PostMapping("/posts")
     public ResponseEntity<Post> create(@RequestBody Post post) {
         posts.add(post);
-        return ResponseEntity.status(201).body(post);
+        URI location = URI.create("/posts");
+        return ResponseEntity.created(location).body(post);
     }
 
     @PutMapping("/posts/{id}")
@@ -55,14 +57,14 @@ public class Application {
         var maybePost = posts.stream()
                 .filter(p -> p.getId().equals(id))
                 .findFirst();
+        var status = HttpStatus.NO_CONTENT;
         if (maybePost.isPresent()) {
             Post post = maybePost.get();
             post.setTitle(data.getTitle());
             post.setBody(data.getBody());
-            return ResponseEntity.ok().body(post);
-        } else {
-            return ResponseEntity.status(204).body(data);
+            status = HttpStatus.OK;
         }
+        return ResponseEntity.status(status).body(data);
     }
 
     // END
