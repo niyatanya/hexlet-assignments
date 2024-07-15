@@ -64,56 +64,50 @@ class ApplicationTest {
 
 
     // BEGIN
-    @Test
-    public void testCreate() throws Exception {
-        String title = faker.lorem().word();
-        String description = faker.lorem().paragraph();
-
-        var task = Instancio.of(Task.class)
-                .ignore(Select.field(Task::getId))
-                .supply(Select.field(Task::getTitle), () -> title)
-                .supply(Select.field(Task::getDescription), () -> description)
-                .create();
-
-        var request = post("/tasks")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(task));
-
-        mockMvc.perform(request)
-                .andExpect(status().isCreated());
-
-        task = taskRepository.findByTitle(title).get();
-        assertThat(task.getTitle()).isEqualTo(title);
-    }
-
-    @Test
-    public void testShow() throws Exception {
-        String title = faker.lorem().word();
-        String description = faker.lorem().paragraph();
-
-        var task = Instancio.of(Task.class)
-                .ignore(Select.field(Task::getId))
-                .supply(Select.field(Task::getTitle), () -> title)
-                .supply(Select.field(Task::getDescription), () -> description)
-                .create();
-        taskRepository.save(task);
-
-        var request = get("/tasks/" + task.getId());
-
-        mockMvc.perform(request)
-                .andExpect(status().isOk());
-
-        task = taskRepository.findById(task.getId()).get();
-        assertThat(task.getTitle()).isEqualTo(title);
-    }
-
-    @Test
-    public void testUpdate() throws Exception {
-        var task = Instancio.of(Task.class)
+    private Task generateTask() {
+        return Instancio.of(Task.class)
                 .ignore(Select.field(Task::getId))
                 .supply(Select.field(Task::getTitle), () -> faker.lorem().word())
                 .supply(Select.field(Task::getDescription), () -> faker.lorem().paragraph())
                 .create();
+    }
+
+    @Test
+    public void testCreate() throws Exception {
+        Task data = generateTask();
+
+        var request = post("/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(data));
+
+        mockMvc.perform(request)
+                .andExpect(status().isCreated());
+
+        Task task = taskRepository.findByTitle(data.getTitle()).get();
+        assertThat(task.getTitle()).isEqualTo(data.getTitle());
+    }
+
+    @Test
+    public void testShow() throws Exception {
+        Task task = generateTask();
+        taskRepository.save(task);
+
+        var request = get("/tasks/" + task.getId());
+
+        var result = mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var body = result.getResponse().getContentAsString();
+        assertThatJson(body).and(
+                v -> v.node("title").isEqualTo(task.getTitle()),
+                v -> v.node("description").isEqualTo(task.getDescription())
+        );
+    }
+
+    @Test
+    public void testUpdate() throws Exception {
+        Task task = generateTask();
         taskRepository.save(task);
 
         var data = new HashMap<>();
@@ -134,11 +128,7 @@ class ApplicationTest {
 
     @Test
     public void testDelete() throws Exception {
-        var task = Instancio.of(Task.class)
-                .ignore(Select.field(Task::getId))
-                .supply(Select.field(Task::getTitle), () -> faker.lorem().word())
-                .supply(Select.field(Task::getDescription), () -> faker.lorem().paragraph())
-                .create();
+        Task task = generateTask();
         taskRepository.save(task);
 
         var request = delete("/tasks/" + task.getId());
@@ -146,8 +136,8 @@ class ApplicationTest {
         mockMvc.perform(request)
                 .andExpect(status().isOk());
 
-        assertThat(taskRepository.findAll()).extracting(Task::getId)
-                .doesNotContain(task.getId());
+        task = taskRepository.findById(task.getId()).orElse(null);
+        assertThat(task).isNull();
     }
     // END
 }
