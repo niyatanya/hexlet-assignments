@@ -23,8 +23,6 @@ import exercise.repository.ProductRepository;
 import jakarta.validation.Valid;
 
 import exercise.model.Product;
-import exercise.model.Category;
-import exercise.repository.CategoryRepository;
 
 @RestController
 @RequestMapping("/products")
@@ -33,16 +31,13 @@ public class ProductsController {
     private ProductRepository productRepository;
 
     @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
     private ProductMapper productMapper;
 
     // BEGIN
     @GetMapping
     public List<ProductDTO> index() {
         return productRepository.findAll().stream()
-                .map(p -> productMapper.map(p))
+                .map(productMapper::map)
                 .toList();
     }
 
@@ -50,55 +45,31 @@ public class ProductsController {
     public ProductDTO show(@PathVariable long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
-
-        ProductDTO productDTO = productMapper.map(product);
-        productDTO.setCategoryName(product.getCategory().getName());
-        return productDTO;
+        return productMapper.map(product);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductDTO create(@RequestBody ProductCreateDTO productData) {
+    public ProductDTO create(@Valid @RequestBody ProductCreateDTO productData) {
         Product product = productMapper.map(productData);
         productRepository.save(product);
-
-        Category category = product.getCategory();
-        category.getProducts().add(product);
-        categoryRepository.save(category);
-
-        ProductDTO productDTO = productMapper.map(product);
-        productDTO.setCategoryName(category.getName());
-        return productDTO;
+        return productMapper.map(product);
     }
 
     @PutMapping(path = "/{id}")
-    public ProductDTO update(@RequestBody ProductUpdateDTO productData,
+    public ProductDTO update(@Valid @RequestBody ProductUpdateDTO productData,
                              @PathVariable long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
-        Category category = categoryRepository.findById(productData.getCategoryId().get())
-                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + productData.getCategoryId().get() + " not found"));
-        category.getProducts().remove(product);
-        product.setCategory(category);
-
         productMapper.update(productData, product);
         productRepository.save(product);
-
-        category.getProducts().add(product);
-        categoryRepository.save(category);
-
-        ProductDTO productDTO = productMapper.map(product);
-        productDTO.setCategoryName(category.getName());
-        return productDTO;
+        return productMapper.map(product);
     }
 
     @DeleteMapping(path = "/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void destroy(@PathVariable long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
-
-        productRepository.delete(product);
+        productRepository.deleteById(id);
     }
     // END
 }
