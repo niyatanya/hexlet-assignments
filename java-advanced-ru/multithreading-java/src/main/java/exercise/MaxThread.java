@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class MaxThread extends Thread {
 
     static int[] numbers = new int[50];
-    static int max = 0;
+    static int max;
 
     public MaxThread(int[] numbers) {
         this.numbers = numbers;

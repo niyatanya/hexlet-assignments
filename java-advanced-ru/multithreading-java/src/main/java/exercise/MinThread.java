@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class MinThread extends Thread {
 
     static int[] numbers = new int[50];
-    static int min = 0;
+    static int min;
 
     public MinThread(int[] numbers) {
         this.numbers = numbers;
