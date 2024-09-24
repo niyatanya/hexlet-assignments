@@ -3,17 +3,13 @@ package exercise;
 // BEGIN
 import java.util.Arrays;
 
-public class MaxThread extends Thread {
+class MaxThread extends Thread {
 
-    static int[] numbers = new int[50];
-    static int max;
+    private int[] numbers;
+    private int max;
 
-    public MaxThread(int[] numbers) {
+    MaxThread(int[] numbers) {
         this.numbers = numbers;
-    }
-
-    public static int getMax() {
-        return max;
     }
 
     @Override
@@ -21,6 +17,20 @@ public class MaxThread extends Thread {
         int[] sortedNums = Arrays.copyOf(numbers, numbers.length);
         Arrays.sort(sortedNums);
         max = sortedNums[sortedNums.length - 1];
+
+//        int max = numbers[0];
+//
+//        for (int currentNumber : numbers) {
+//            if (currentNumber > max) {
+//                max = currentNumber;
+//            }
+//        }
+//
+//        maximum = max;
+    }
+
+    public int getMax() {
+        return max;
     }
 }
 // END

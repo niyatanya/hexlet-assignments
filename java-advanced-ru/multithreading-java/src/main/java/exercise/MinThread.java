@@ -3,17 +3,13 @@ package exercise;
 // BEGIN
 import java.util.Arrays;
 
-public class MinThread extends Thread {
+class MinThread extends Thread {
 
-    static int[] numbers = new int[50];
-    static int min;
+    private int[] numbers;
+    private int min;
 
-    public MinThread(int[] numbers) {
+    MinThread(int[] numbers) {
         this.numbers = numbers;
-    }
-
-    public static int getMin() {
-        return min;
     }
 
     @Override
@@ -21,6 +17,20 @@ public class MinThread extends Thread {
         int[] sortedNums = Arrays.copyOf(numbers, numbers.length);
         Arrays.sort(sortedNums);
         min = sortedNums[0];
+
+//        int minumum = numbers[0];
+//
+//        for (int currentNumber : numbers) {
+//            if (currentNumber < minumum) {
+//                minumum = currentNumber;
+//            }
+//        }
+//
+//        min = minumum;
+    }
+
+    public int getMin() {
+        return min;
     }
 }
 // END
