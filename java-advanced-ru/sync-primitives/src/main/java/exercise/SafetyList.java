@@ -17,9 +17,8 @@ class SafetyList {
     }
 
     public synchronized boolean add(int element) {
-        elements = Arrays.copyOf(elements, size + 2);
-        elements[size + 1] = element;
-        size = size + 1;
+        elements = Arrays.copyOf(elements, size + 1);
+        elements[size++] = element;
         return true;
     }
 
