@@ -1,13 +1,10 @@
 package exercise;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.Arrays;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.nio.file.Files;
-import java.io.File;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.NoSuchFileException;
 import java.util.concurrent.CompletionException;
 
 class App {
@@ -15,13 +12,10 @@ class App {
     // BEGIN
     public static CompletableFuture<String> unionFiles(String filePathString1,
                                     String filePathString2,
-                                    String resultFilePathString) throws Exception, NoSuchFileException {
+                                    String resultFilePathString) {
 
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
             Path filePath1 = Paths.get(filePathString1).toAbsolutePath().normalize();
-            if (!Files.exists(filePath1)) {
-                throw new CompletionException(new NoSuchFileException("File " + filePath1 + " does not exist."));
-            }
 
             String content1 = "";
             try {
@@ -34,43 +28,30 @@ class App {
 
         CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
             Path filePath2 = Paths.get(filePathString2).toAbsolutePath().normalize();
-            if (!Files.exists(filePath2)) {
-                throw new CompletionException(new NoSuchFileException("File " + filePath2 + " does not exist."));
-            }
 
             String content2 = "";
             try {
                 content2 = Files.readString(filePath2);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
             return content2;
         });
 
-        CompletableFuture<String> futureWriteFile = future1.thenCombine(future2, (file1, file2) -> {
+        return future1.thenCombine(future2, (file1, file2) -> {
             String twoFilesContent = file1.concat(file2);
             Path resultFilePath = Paths.get(resultFilePathString).toAbsolutePath().normalize();
-            Path destFilePath = resultFilePath;
-
-            if (!Files.exists(resultFilePath)) {
-                try {
-                    destFilePath = Files.createFile(resultFilePath);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
 
             try {
-                Files.write(destFilePath, twoFilesContent.getBytes());
+                Files.write(resultFilePath, twoFilesContent.getBytes(), StandardOpenOption.CREATE);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-            return twoFilesContent;
+            return "Success!";
         }).exceptionally(ex -> {
             System.out.println("Oops! We have an exception - " + ex.getMessage());
-            return null;
+            return "Operation failed.";
         });
-        return futureWriteFile;
     }
     // END
 
