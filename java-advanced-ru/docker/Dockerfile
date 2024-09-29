@@ -15,4 +15,10 @@ RUN mv gradle-${GRADLE_VERSION} ${GRADLE_HOME}
 
 ENV PATH=$PATH:$GRADLE_HOME/bin
 
-EXPOSE 8080
+WORKDIR /app
+
+COPY ./app .
+
+CMD ["gradle", "bootRun"]
+
+EXPOSE 3000
