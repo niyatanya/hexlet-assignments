@@ -49,6 +49,19 @@ public class AppTest {
     // END
 
     @Test
+    void testGetAllPersons() {
+        MockHttpServletResponse responseGetAll = mockMvc
+                .perform(get("/people")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String body = responseGetAll.getResponse().getContentAsString();
+        assertThatJson(body).isArray();
+    }
+
+
+    @Test
     void testCreatePerson() throws Exception {
         MockHttpServletResponse responsePost = mockMvc
             .perform(
