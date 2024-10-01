@@ -49,7 +49,7 @@ public class AppTest {
     // END
 
     @Test
-    void testGetAllPersons() {
+    void testGetAllPersons() throws Exception {
         MockHttpServletResponse response = mockMvc
                 .perform(get("/people"))
                 .andReturn()
