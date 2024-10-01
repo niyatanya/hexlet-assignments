@@ -50,16 +50,14 @@ public class AppTest {
 
     @Test
     void testGetAllPersons() {
-        MockHttpServletResponse responseGetAll = mockMvc
-                .perform(get("/people")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
+        MockHttpServletResponse response = mockMvc
+                .perform(get("/people"))
+                .andReturn()
+                .getResponse();
 
-        String body = responseGetAll.getResponse().getContentAsString();
-        assertThatJson(body).isArray();
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(response.getContentAsString()).isArray();
     }
-
 
     @Test
     void testCreatePerson() throws Exception {
